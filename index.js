@@ -136,7 +136,12 @@ async function handleRequest(request) {
       for(let i = 0; i < OPTION_ROUTES.preset.length; i++) {
         let field = OPTION_ROUTES.preset[i];
         if( subroute1.toLowerCase() == ('/' + field.toLowerCase()) ) {
-          let search_page = await (await fetch(SEARCH_PAGE_URL)).text();
+          let search_page = await (await fetch(SEARCH_PAGE_URL, {
+            cf: {
+              cacheTtl: 60, // this shouldn't update too often
+              cacheEverything: true
+            }
+          })).text();
           let options = tXml(search_page, {attrName: 'name', attrValue: field})[0].children;
           return r(selectorToData(options));
         }
@@ -171,6 +176,10 @@ async function handleRequest(request) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        cf: {
+          cacheTtl: 60, // this shouldn't update too often either
+          cacheEverything: true
         },
         body: form.join("&")
       })).text();

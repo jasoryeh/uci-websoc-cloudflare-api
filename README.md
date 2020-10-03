@@ -1,5 +1,7 @@
 # UCI Schedule of Classes/WebSOC API
 
+A more elegant way of reading UCI's schedule of classes, presented to you by json!
+
 This API is live, and published to [https://uci-websoc.jasonho.workers.dev/](https://uci-websoc.jasonho.workers.dev/), and powered by Cloudflare Workers.
 
 Although this API reads directly from the the Schedule of Classes' WebSoc, it does not return values verbatim, and tries to make all data returned consistent by stripping formatting, or likely human-created formatting such as random spaces in places.
