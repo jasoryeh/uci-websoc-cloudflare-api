@@ -115,7 +115,7 @@ const OPTION_ROUTES = {
   ],
   "_docs": {
     "all": "All available fields that can be passed to /query",
-    "preset": "All fields that need to be check against /query/<item> to be used in /query",
+    "preset": "All fields that need to be check against /options/<item> to be used in /query",
     "any": "All fields that are up to the user, but follows the same needs as WebSoc's search tool's restrictions"
   }
 };
