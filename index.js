@@ -9,9 +9,8 @@ void 0===e?"":e;var g=[];b.forEach(function(l,a){"object"===typeof l&&c(l,a,d,e)
 void 0,a=e[g];d+="<"+a.tagName;for(l in a.attributes)d=null===a.attributes[l]?d+(" "+l):-1===a.attributes[l].indexOf('"')?d+(" "+l+'="'+a.attributes[l].trim()+'"'):d+(" "+l+"='"+a.attributes[l].trim()+"'");d+=">";c(a.children);d+="</"+a.tagName+">"}}var d="";c(b);return d},toContentString:u,getElementById:function(b,c,d){b=q(b,{attrValue:c});return d?tXml.simplify(b):b[0]},getElementsByClassName:function(b,c,d){b=q(b,{attrName:"class",attrValue:"[a-zA-Z0-9- ]*"+c+"[a-zA-Z0-9- ]*"});return d?tXml.simplify(b):
 b}}}();
 
-//const API_ENDPOINT = 'https://www.reg.uci.edu/perl/WebSoc';
-// test - 
-const API_ENDPOINT = 'https://FineSafeDefinition.jasoryeh.repl.co';
+const API_ENDPOINT = 'https://www.reg.uci.edu/perl/WebSoc';
+// test - const API_ENDPOINT = 'https://FineSafeDefinition.jasoryeh.repl.co';
 const ROUTE_OPTIONS = '/options';
 const ROUTE_QUERY = '/query';
 
