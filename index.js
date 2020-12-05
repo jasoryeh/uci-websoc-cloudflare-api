@@ -39,6 +39,17 @@ function deEncode(str) {
   return str ? unescape(str).replaceAll("&amp;", "&").replaceAll("&nbsp; ", "").replaceAll("&nbsp;", "").replaceAll("  ", " ").trim() : undefined;
 }
 
+function isComment(element) {
+  if(element.children && element.children.length > 3) {
+    let testElement = element.children[2];
+    if(testElement.attributes.class && 
+        testElement.attributes.class == 'Pct100') {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Builds information for the WebSoc API paramters.
  * @param {*} type Type of field
@@ -156,12 +167,32 @@ async function route_query(json) {
     rad_idx = rowAlignmentData[type];
     return typeof(rad_idx) == 'number' ? (rowChildren[rad_idx] ? rowChildren[rad_idx].children[0] : null) : null;
   }
+  // we only really care about the first element for now, nothing else yet since this has a really specific use.
   let res_child = function(element) {
     let tmp = element;
     while (tmp && tmp.children && tmp.children.length > 0) {
       tmp = tmp.children[0];
     }
     return tmp;
+  }
+  // resolves all strings
+  let res_childs = function(element) {
+    let resolved = [];
+    if(element && element.children && element.children.length > 0) {
+      for(let child of element.children) {
+        if(typeof(child) == 'string' && deEncode(child).length > 0) {
+          resolved.push(child);
+        } else {
+          for(let e of res_childs(child)) {
+            e = deEncode(e);
+            if(e.length > 0) {
+              resolved.push(e);
+            }
+          }
+        }
+      }
+    }
+    return resolved;
   }
 
   let tableRowsLength = tableRows.length;
@@ -192,14 +223,11 @@ async function route_query(json) {
         }
       }
     } else {
-      if(row.attributes.length <= 0) { continue; } // course comment for previous row
       let courseComments = null;
       if (tableRowsLength != (rowidx + 1)) {
         let followingRow = tableRows[rowidx + 1];
-        if (followingRow.attributes.length <= 0 || followingRow.attributes.bgcolor == '#FFFFCC' 
-            || (followingRow.children.length > 0 && followingRow.children[0].children[0] == '&nbsp;') ) {
-          courseComments = followingRow.children;
-          rowidx++; // makes sure to skip row following
+        if(isComment(followingRow)) {
+          courseComments = res_childs(followingRow);
         }
       }
       /**
@@ -246,10 +274,11 @@ async function route_query(json) {
         'newonlys': rdata_get('Nor', rowChildren),
         'waitlist': wlObj, // debatable - wlObj == 'n/a' ? null : wlObj,
         'required': rdata_get('Req', rowChildren),
-        'restrictions': rstrObj.length == 0 ? null : rstrObj,
+        'restrictions': rstrObj ? rstrObj.length == 0 ? null : rstrObj : null,
         'textbooks': textbooksObj ? deEncode(textbooksObj.attributes.href) : null,
         'website': deEncode((websiteObj && websiteObj.attributes) ? websiteObj.attributes.href : websiteObj),
-        'status': res_child(statusObj)
+        'status': res_child(statusObj),
+        'course_comments': courseComments
       };
     }
   }
@@ -269,7 +298,13 @@ async function handleRequest(request) {
     if(!(request.method == 'POST' && (request.headers.get('content-type') || '').includes('json'))) {
       return rs({ "error": "Invalid content type. Current support is only for json." }, 406);
     }
-    return await route_query(( (jsn) => { let procd = {}; for (let key in (jsn || {})) { procd[key.toLowerCase()] = jsn[key]; return procd; } } )(await request.json()));
+    return await route_query(( (jsn) => { 
+      let procd = {};
+      for (let key in (jsn || {})) {
+        procd[key.toLowerCase()] = jsn[key];
+      }
+      return procd;
+    } )(await request.json()));
   } else {
     return rs({
       "message": "UCI WebReg Schedule of Classes API v0.2",
