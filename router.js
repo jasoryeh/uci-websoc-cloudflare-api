@@ -3,10 +3,34 @@ const txml = require('./tXml');
 const WSP = require('./websoc_params');
 const WebsocketResults = require('./websoc_results');
 
-const FETCH_PARAMS = {
-    cacheTtl: 60, // things shouldn't update too often.
-    cacheEverything: true
-};
+const FETCH_PARAMS = config.cache;
+
+async function FETCH_PARAMS_WITH_KEY(data) {
+    if(FETCH_PARAMS) {
+        let copy = {
+            ...FETCH_PARAMS,
+            cacheKey: await sha256(data)
+        };
+        return copy;
+    }
+    return undefined;
+}
+
+async function sha256(message) {
+    // encode as UTF-8
+    const msgBuffer = new TextEncoder().encode(message);
+  
+    // hash the message
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+  
+    // convert ArrayBuffer to Array
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+  
+    // convert bytes to hex string
+    const hashHex = hashArray.map(b => ("00" + b.toString(16)).slice(-2)).join("");
+    console.log("request sha: " + hashHex);
+    return hashHex;
+}
 
 function formatResponse(json, stat = 200) {
     return new Response(JSON.stringify(json, null, 4), {
@@ -60,13 +84,14 @@ async function handleQuery(request) {
         }
     }
 
+    let finalFormBody = formBody.join("&");
     let courses = await (await fetch(config.websoc_endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
-        cf: FETCH_PARAMS,
-        body: formBody.join("&")
+        cf: await FETCH_PARAMS_WITH_KEY(finalFormBody),
+        body: finalFormBody
     })).text();
     
     let parsed = txml().parse(courses);

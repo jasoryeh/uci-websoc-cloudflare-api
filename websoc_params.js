@@ -10,6 +10,8 @@ function buildOption(def = () => undefined, normalizer = (val) => val) {
             try {
                 return normalizer(validate);
             } catch(ex) {
+                console.log("Error normalizing input query.");
+                console.log(ex);
                 if (defaultVal) {
                     return defaultVal;
                 }
@@ -23,7 +25,7 @@ function buildOption(def = () => undefined, normalizer = (val) => val) {
 
 function normalizerOnOff(val) {
     if (isEmpty(val)) undefined;
-    return (val === true || val == "On") ? "On" : "Off";
+    return (val === true || val.toLowerCase() == "on") ? "On" : "Off";
 }
 
 function normalizerListish(val) {
@@ -69,7 +71,7 @@ module.exports = {
     'MaxCap': buildOption(() => undefined, normalizerListish),
     'FullCourses': buildOption(() => "ANY"),
     'FontSize': buildOption(() => undefined, normalizerListish),
-    'CancelledCourses': buildOption(() => "Exclude"),
+    'CancelledCourses': buildOption(() => "Exclude"),  // todo: accept Exclude, Include, and Only only.
     'Bldg': buildOption(),
     'Room': buildOption(),
     'Submit': buildOption(() => "Display XML Results", (value) => "Display XML Results")
